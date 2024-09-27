@@ -262,17 +262,21 @@ FROM top_bottom
 WHERE rnk_top IN (1,2,3) OR
 		rnk_bottom IN (1,2,3)
 
-''' 22. Which artist has the most no of Portraits paintings outside USA?. Display artist
+''' 22. Which artist has the most no of Portraits diplayed outside USA paintings ?. Display artist
 name, no of paintings and the artist nationality. '''
-with cte as 
-		(select style, count(1) as cnt
-		, rank() over(order by count(1) desc) rnk
-		, count(1) over() as no_of_records
-		from work
-		where style is not null
-		group by style)
-	select style
-	, case when rnk <=3 then 'Most Popular' else 'Least Popular' end as remarks 
-	from cte
-	where rnk <=3
-	or rnk > no_of_records - 3;
+
+WITH portrait_arts AS
+					( SELECT s.subject ,COUNT(s.subject) AS no_of_paintings,a.full_name,a.nationality FROM work w 
+					  LEFT JOIN subject s ON s.work_id = w.work_id
+					  LEFT JOIN artist a ON a.artist_id = w.artist_id
+					  LEFT JOIN museum m ON m.museum_id = w.museum_id
+					  WHERE s.subject = 'Portraits' AND m.country <> 'USA' 
+					  GROUP BY s.subject,a.full_name,a.nationality 
+					)
+SELECT subject,full_name,nationality,no_of_paintings
+FROM portrait_arts
+ORDER BY no_of_paintings DESC 
+LIMIT 2
+
+
+	
